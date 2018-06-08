@@ -1,16 +1,17 @@
 -- This file was automatically generated for the LuaDist project.
 
 package="luagraph"
-version="1.0.4-1"
+version="2.0.0-1"
+-- LuaDist source
 -- LuaDist source
 source = {
-  tag = "1.0.4-1",
+  tag = "2.0.0-1",
   url = "git://github.com/LuaDist-testing/luagraph.git"
 }
 -- Original source
 -- source = {
---    url = "http://luaforge.net/frs/download.php/4528/luagraph-1.0.4.tar.gz",
---    md5 = "f2f71bcbabf243792e230665b1403f58"
+--   tag = "2.0.0-1",
+--   url = "git://github.com/hleuwer/luagraph.git"
 -- }
 description = {
    summary = "A binding to the graphviz graph library",
@@ -19,15 +20,18 @@ description = {
       It allows to create, manipulate, layout and render graphs
       using the Lua programming language. 
    ]],
-   homepage = "http://luagraph.luaforge.net",
+   homepage = "http://github.com/hleuwer/luagraph",
    license = "MIT/X11"
+}
+supported_platforms = {
+   "linux", "macosx"
 }
 dependencies = {
    "lua >= 5.1"
 }
 external_dependencies = {
    GRAPHVIZ = {
-      header = "graphviz/graph.h"
+      header = "graphviz/cgraph.h"
    }
 }
 build = {

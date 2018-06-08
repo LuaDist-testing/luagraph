@@ -4,16 +4,26 @@ include config
 all:
 	cd src && $(MAKE) $@
 
+clean-win32:
+	rm -rf Release Debug
+	rm -rf $(LUAGRAPH_WIN32).suo
+	rm -rf $(LUAGRAPH_WIN32).ncb
+	rm -rf $(LUAGRAPH_WIN32).sln
+	rm -rf $(LUAGRAPH_WIN32).vcproj.*
+
 clean depend:
 	cd src && $(MAKE) $@
 
-uclean: clean
+uclean: clean clean-win32
 	rm -f `find . -name "*~"` 
 	rm -f `find . -name "#*"` 
 	rm -f graph/core.so $(LUAGRAPH_SO) 
 	rm -f out.*
+	rm -rf outdir
 
-.PHONY: install uninstall install-doc uninstall-doc
+.PHONY: local-install-win32 install uninstall install-doc uninstall-doc
+local-install-win32:
+	cp Release/$(LUAGRAPH_WIN32).dll graph/core.dll
 
 install: all
 	mkdir -p $(INSTALL_SHARE) $(INSTALL_LIB)/graph
@@ -32,21 +42,22 @@ uninstall-doc:
 	rm -rf $(INSTALL_DOC)
 
 .PHONY: test testd
+
 test:
 	$(LUABIN) test/test.lua
 
-testd:
+testd: 
 	$(LUABIN) test/test.lua DEBUG
 
-.PHONY: tag tag-git tag-cvs tag-svn
+.PHONY: tag tag-git 
 tag: tag-git
-	cvs tag -F latest
 
 tag-git:
 	git tag -F latest
 
-tag-cvs:
-	cvs tag -F latest
+
+show::
+	@echo "System shortname: "$(SYSTEM)
 
 .PHONY: dist dist-git dist-cvs dist-svn
 dist: dist-git
@@ -54,14 +65,3 @@ dist: dist-git
 dist-git:
 	mkdir -p $(EXPORTDIR)
 	git archive --format=tar --prefix=$(DISTNAME)/ HEAD | gzip >$(EXPORTDIR)/$(DISTARCH)
-
-dist-cvs:
-	mkdir -p $(EXPORTDIR)/$(DISTNAME)
-	cvs export -r latest -d $(EXPORTDIR)/$(DISTNAME) $(CVSMODULE)
-	cd $(EXPORTDIR); tar -cvzf $(DISTNAME).tar.gz $(DISTNAME)/*
-	rm -rf $(EXPORTDIR)/$(DISTNAME)
-
-dist-svn:
-	svn export $(REPOSITORY)/$(SVNMODULE) $(EXPORTDIR)/$(DISTNAME)
-	cd $(EXPORTDIR); tar -cvzf $(DISTARCH) $(DISTNAME)/*
-	rm -rf $(EXPORTDIR)/$(DISTNAME)
