@@ -1,10 +1,10 @@
 -- This file was automatically generated for the LuaDist project.
 
 package="luagraph"
-version="1.0.2-1"
+version="1.0.2-2"
 -- LuaDist source
 source = {
-  tag = "1.0.2-1",
+  tag = "1.0.2-2",
   url = "git://github.com/LuaDist-testing/luagraph.git"
 }
 -- Original source
@@ -38,6 +38,7 @@ build = {
       INSTALL_LIB = "$(LIBDIR)",
       LUAINC = "$(LUA_INCDIR)",
       LDFLAGS = "$(LIBFLAG) -L$(GRAPHVIZ_LIBDIR)",
-      GVROOT = "$(GRAPHVIZ_DIR)"
+      GVROOT = "$(GRAPHVIZ_DIR)",
+      CFLAGS = "$(CFLAGS)"
    }
 }
