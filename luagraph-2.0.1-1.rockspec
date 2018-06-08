@@ -1,10 +1,18 @@
-package="LuaGRAPH"
-version="2.0.0-1"
+-- This file was automatically generated for the LuaDist project.
+
+package="luagraph"
+version="2.0.1-1"
+-- LuaDist source
 -- LuaDist source
 source = {
-  tag = "2.0.0-1",
-  url = "git://github.com/hleuwer/luagraph.git"
+  tag = "2.0.1-1",
+  url = "git://github.com/LuaDist-testing/luagraph.git"
 }
+-- Original source
+-- source = {
+--   tag = "2.0.1-1",
+--   url = "git://github.com/hleuwer/luagraph.git"
+-- }
 description = {
    summary = "A binding to the graphviz graph library",
    detailed = [[
