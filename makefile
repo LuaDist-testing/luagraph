@@ -1,56 +1,67 @@
 include config
 
+.PHONY: all clean depend uclean
 all:
-	cd src; $(MAKE) $@
-	rm -f graph.lua; ln -f -s $(LUAGRAPH) graph.lua
+	cd src && $(MAKE) $@
 
 clean depend:
-	cd src; $(MAKE) $@
+	cd src && $(MAKE) $@
 
 uclean: clean
-	rm -f `find . -name "*~"`
-	rm -f graph.so graph.lua
+	rm -f `find . -name "*~"` 
+	rm -f `find . -name "#*"` 
+	rm -f graph/core.so $(LUAGRAPH_SO) 
 	rm -f out.*
 
+.PHONY: install uninstall install-doc uninstall-doc
+
 install: all
-	cd src; mkdir -p $(INSTALL_SHARE)
-	cp graph.lua $(INSTALL_SHARE)
-	cd src; mkdir -p $(INSTALL_LIB)/graph
-	cd src; cp $(LUAGRAPH_SO) $(INSTALL_LIB)/graph/core.$(EXT)
+	mkdir -p $(INSTALL_SHARE) $(INSTALL_LIB)/graph
+	$(INSTALL_DATA) graph.lua $(INSTALL_SHARE)
+	cd src && $(INSTALL_COPY) $(LUAGRAPH_SO) $(INSTALL_LIB)/graph/core.$(EXT)
 
 uninstall:
 	rm -rf $(INSTALL_SHARE)/graph.lua
 	rm -rf $(INSTALL_LIB)/graph
 
+install-doc:
+	mkdir -p $(INSTALL_DOC)/html
+	cd doc && $(INSTALL_COPY) * $(INSTALL_DOC)/html
+
+uninstall-doc:
+	rm -rf $(INSTALL_DOC)
+
+.PHONY: test testd
 test:
-	$(LUABIN) $(TESTLUA)
+	$(LUABIN) test/test.lua
 
 testd:
-	$(LUABIN) $(TESTLUA) DEBUG
+	$(LUABIN) test/test.lua DEBUG
 
-#
-# Put LuaGRAPH doc into my Lua documentation tree
-#
-DOCDIR := ./doc
-DOCS := $(shell ls $(DOCDIR) | grep -v CVS)
-LUAWB := $(LUA)/doc/luawb
-MODULE := graph
-
-webbook:
-	mkdir -p $(LUAWB)/en/modules/$(MODULE)
-	if test -e $(DOCDIR); then \
-	  for i in $(DOCS); do \
-            cp -f $(DOCDIR)/$$i $(LUAWB)/en/modules/$(MODULE); \
-          done; \
-        fi
-
-tag::
+.PHONY: tag tag-git tag-cvs tag-svn
+tag: tag-git
 	cvs tag -F latest
 
-dist::
+tag-git:
+	git tag -F latest
+
+tag-cvs:
+	cvs tag -F latest
+
+.PHONY: dist dist-git dist-cvs dist-svn
+dist: dist-git
+
+dist-git:
+	mkdir -p $(EXPORTDIR)
+	git archive --format=tar --prefix=$(DISTNAME)/ HEAD | gzip >$(EXPORTDIR)/$(DISTARCH)
+
+dist-cvs:
 	mkdir -p $(EXPORTDIR)/$(DISTNAME)
 	cvs export -r latest -d $(EXPORTDIR)/$(DISTNAME) $(CVSMODULE)
 	cd $(EXPORTDIR); tar -cvzf $(DISTNAME).tar.gz $(DISTNAME)/*
 	rm -rf $(EXPORTDIR)/$(DISTNAME)
 
-.PHONY: all webbook tag dist test testd depend clean uclean install uninstall
+dist-svn:
+	svn export $(REPOSITORY)/$(SVNMODULE) $(EXPORTDIR)/$(DISTNAME)
+	cd $(EXPORTDIR); tar -cvzf $(DISTARCH) $(DISTNAME)/*
+	rm -rf $(EXPORTDIR)/$(DISTNAME)

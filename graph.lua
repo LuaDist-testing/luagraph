@@ -410,12 +410,11 @@ end
 local function show(self, doit)
    doit = doit or true
    if doit == true then
-      if _GVMINOR > 8 then
+      if _GVMINOR > 8 and false then
 	 self:layout()
---	 return self:render("gtk")
-	 self:showdotty(doit)
-	 return self:render("dot", "out.dot")
---	 return self:render("jpg", "out.jpg")
+	 --	 return self:render("gtk")
+	 --	 return self:render("xlib")
+	 --	 return self:render("dot", "out.dot")
       else
 	 return self:showdotty(doit)
       end

@@ -24,6 +24,9 @@
 
 #include "gr_graph.h"
 #include "graphviz/cdt.h"
+#include "graphviz/gvc.h"
+#include "graphviz/gvplugin.h"
+
 
 /*=========================================================================*\
  * Defines
@@ -33,6 +36,7 @@
 #define MYGVVERSION GVVERSION
 #define MYCOPYRIGHT "Copyright (C) 2006-2007, Herbert Leuwer "
 #define MYDESCRIPTION "LuaGRAPH is a library for creating, manipulating and rendering GRAPHs (based on the GRAPHVIZ library)."
+
 /*=========================================================================*\
  * Prototypes
 \*=========================================================================*/
@@ -78,6 +82,10 @@ static int gr_render(lua_State *L);
 /*=========================================================================*\
  * Data
 \*=========================================================================*/
+static GVC_t *gvc;
+
+lt_symlist_t lt_preloaded_symbols[] = { { 0, 0 } };
+
 /*
  * Base library functions
  */
@@ -163,6 +171,10 @@ static const luaL_reg reg_metamethods[] = {
 #define new_graph(L)  new_object(L, "graph", reg_rmembers, reg_methods,\
                                  reg_metamethods, object_index_handler)
 
+static void gv_init(void)
+{
+  gvc = gvContextPlugins(lt_preloaded_symbols, DEMAND_LOADING);
+}
 /*-------------------------------------------------------------------------*\
  * Create a new graph
  * Returns graph userdata.
@@ -207,7 +219,6 @@ static int gr_open(lua_State *L)
     return 0;
   }
       
-  ud->gvc = NULL;
   set_object(L, ud->g);
   return new_graph(L);
 }
@@ -230,10 +241,8 @@ static int gr_close(lua_State *L)
     int ix;
 
     /* Clean-up layout and rendering */
-    if (ud->gvc){
-      gvFreeLayout(ud->gvc, ud->g);
-      gvFreeContext(ud->gvc);
-      ud->gvc = NULL;
+    if (gvc){
+      gvFreeLayout(gvc, ud->g);
     }
     /* Recursively delete all assoicated subgraphs */
     if (AG_IS_METAGRAPH(ud->g) == FALSE){
@@ -290,13 +299,6 @@ static int gr_close(lua_State *L)
     TRACE("g:close(): graph: ud=%p '%s' g=%p type=%d\n", 
 	  (void *) ud, agnameof(ud->g), (void *)ud->g, AGTYPE(ud->g));
     del_object(L, ud->g);
-#if 0
-    if (ud->gvc){
-      gvFreeLayout(ud->gvc, ud->g);
-      gvFreeContext(ud->gvc);
-      ud->gvc = NULL;
-    }
-#endif
     agclose(ud->g);
     ud->g = NULL;
     if (ud->name){
@@ -383,7 +385,6 @@ static int gr_read(lua_State *L)
   fclose(fin);
   ud->name = strdup(agnameof(ud->g));
   ud->type = AGGRAPH;
-  ud->gvc = NULL;
   set_object(L, ud->g);
   return new_graph(L);
 }
@@ -489,7 +490,6 @@ static int gr_subgraph(lua_State *L)
       sg->g = g;
       sg->name = strdup(name);
       sg->type = AGGRAPH;
-      sg->gvc = NULL;
       set_object(L, g);
       return new_graph(L);
     } else 
@@ -510,7 +510,6 @@ static int gr_subgraph(lua_State *L)
     if (name)
       sg->name = strdup(name);
     sg->type = AGGRAPH;
-    sg->gvc = NULL;
     set_object(L, sg->g);
     return new_graph(L);
   }
@@ -585,7 +584,6 @@ static int gr_getnext(lua_State *L)
       ud_sg->g = g;
       ud_sg->name = strdup(agnameof(g));
       ud_sg->type = AGGRAPH;
-      ud_sg->gvc = NULL;
       set_object(L, g);
       return new_graph(L);
     }
@@ -1368,11 +1366,13 @@ static int gr_layout(lua_State *L)
   int rv;
   gr_graph_t *ud = tograph(L, 1, STRICT);
   char *fmt = (char *) luaL_optstring(L, 2, "dot");
-  if (ud->gvc){
+#if 0
+  if (gvc){
     lua_pushnil(L);
     lua_pushstring(L, "layout already exists");
     return 2;
   }
+#endif
   if (!strcmp(fmt, "dot") ||
       !strcmp(fmt, "neato") ||
       !strcmp(fmt, "nop") ||
@@ -1380,9 +1380,11 @@ static int gr_layout(lua_State *L)
       !strcmp(fmt, "twopi") ||
       !strcmp(fmt, "fdp") ||
       !strcmp(fmt, "circo")){
-    ud->gvc = gvContext();
-    if ((rv = gvLayout(ud->gvc, ud->g, fmt)) != 0){
-      gvFreeContext(ud->gvc);
+    if (!gvc)
+      gv_init();
+    gvFreeLayout(gvc, ud->g);
+    if ((rv = gvLayout(gvc, ud->g, fmt)) != 0){
+      gvFreeContext(gvc);
       luaL_error(L, "layout error: %d", rv);
       return 0;
     }
@@ -1400,18 +1402,18 @@ static int gr_render(lua_State *L)
   gr_graph_t *ud = tograph(L, 1, STRICT);
   char *fmt = (char *) luaL_optstring(L, 2, "plain");
   char *fname = (char *) luaL_optstring(L, 3, NULL);
-  if (ud->gvc == NULL){
+  if (gvc == NULL){
     lua_pushnil(L);
     lua_pushstring(L, "layout missing");
     return 2;
   }
   if (fname)
-    rv = gvRenderFilename(ud->gvc, ud->g, fmt, fname);
+    rv = gvRenderFilename(gvc, ud->g, fmt, fname);
   else
-    rv = gvRender(ud->gvc, ud->g, fmt, stdout);
+    rv = gvRender(gvc, ud->g, fmt, stdout);
   if (rv != 0){
-    gvFreeLayout(ud->gvc, ud->g);
-    gvFreeContext(ud->gvc);
+    gvFreeLayout(gvc, ud->g);
+    gvFreeContext(gvc);
     lua_pushnil(L);
     lua_pushstring(L, "gvRender failed");
     return 2;
@@ -1490,5 +1492,6 @@ LUALIB_API int luaopen_graph_core(lua_State *L) {
   lua_pushliteral(L, MYDESCRIPTION);
   lua_rawset(L, -3);
   aginit();
+  gv_init();
   return 1;
 }

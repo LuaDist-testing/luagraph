@@ -1,5 +1,5 @@
 gr = require "graph"
-require "stdlib"
+
 --
 -- simple printing
 --
@@ -33,8 +33,6 @@ g:edge("n1", "n4", "n1=>n4")
 --
 -- Print prototypes
 --
-print(pretty(g:defaults()))
-print(pretty(sg:defaults()))
 g:write()
 g:show()
 g:close()

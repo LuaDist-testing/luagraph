@@ -1,6 +1,6 @@
 gr = require "graph"
 
-if arg.n < 1 then
+if table.getn(arg) < 1 then
   print("usage: lua run.lua FILE")
   os.exit(-1)
 end

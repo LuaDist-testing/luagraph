@@ -1,6 +1,6 @@
 local gr = require "graph"
 
-if arg.n < 2 then
+if table.getn(arg) < 2 then
   print("usage: lua render.lua FILE FORMAT")
   print("       FORMAT: dot, neato, twopi, fdp, circo")
   os.exit(-1)

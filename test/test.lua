@@ -1,11 +1,11 @@
 local graph = require "graph"
-logging = require "logging.console"
+require "logging.console"
 
 local function collect()
   if _G._VERSION == "Lua 5.1" then
-    collectgarbage("collect")
+--     collectgarbage("collect")
   else
-    collectgarbage(0)
+     collectgarbage(0)
   end
 end
 
@@ -128,8 +128,8 @@ local function test_graph_write()
   -- Write to file
   local fn = os.tmpname()
   h:write(fn)
-  -- Compare contents with reference
-  local fref = io.open("test/ref.dot","r")
+  -- Compare contents with original
+  local fref = io.open("test/test_dat1.dot","r")
   local sref = fref:read("*a")
   local f = io.open(fn)
   local s = f:read("*a")
@@ -263,12 +263,12 @@ local function test_graph_iterate()
   
   -- Iteration 3
   debug("Iteration 3\n")
-  local t = {}
   for g in root:walk() do 
-    assert(g.parent == root) 
+     assert(g.parent == root) 
   end
 
   -- Closes all graphs
+  print("closing")
   root:close()
   collect()
 
@@ -321,7 +321,7 @@ local function test_close()
   local sg2 = assert(g:subgraph("SG2-close"))
   local ssg1 = assert(sg1:subgraph("SSG1-close"))
   assert(g:close())
-  collect()
+--  collect()
   intro("passed\n")
 end
 
@@ -739,8 +739,8 @@ local function test_layout()
   intro("Test layout: layout  ...")
   local g, t = graph.open("Gx")
   local e1 = g:edge{"n1", "n2", label="n1=>n2"}
+  assert(g:layout("dot"))
   local fn = os.tmpname()
-  assert(g:layout())
   debug("PLAIN:\n")
   assert(g:render("plain", fn))
   debug("XDOT:\n")

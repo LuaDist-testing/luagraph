@@ -1,16 +1,16 @@
 -- This file was automatically generated for the LuaDist project.
 
 package="luagraph"
-version="1.0.2-2"
+version="1.0.4-1"
 -- LuaDist source
 source = {
-  tag = "1.0.2-2",
+  tag = "1.0.4-1",
   url = "git://github.com/LuaDist-testing/luagraph.git"
 }
 -- Original source
 -- source = {
---    url = "http://luaforge.net/frs/download.php/2088/luagraph-1.0.2.tar.gz",
---    md5 = "1de95eb5448067d275dbf82566c1648b"
+--    url = "http://luaforge.net/frs/download.php/4528/luagraph-1.0.4.tar.gz",
+--    md5 = "f2f71bcbabf243792e230665b1403f58"
 -- }
 description = {
    summary = "A binding to the graphviz graph library",
@@ -36,9 +36,8 @@ build = {
       INSTALL_ROOT = "$(PREFIX)",
       INSTALL_SHARE = "$(LUADIR)",
       INSTALL_LIB = "$(LIBDIR)",
-      LUAINC = "$(LUA_INCDIR)",
+      LUAINC = "$(LUA_INCDIR) -I$(GRAPHVIZ_INCDIR)",
       LDFLAGS = "$(LIBFLAG) -L$(GRAPHVIZ_LIBDIR)",
       GVROOT = "$(GRAPHVIZ_DIR)",
-      CFLAGS = "$(CFLAGS)"
    }
 }

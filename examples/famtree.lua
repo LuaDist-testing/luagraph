@@ -4,7 +4,7 @@ gr = require "graph"
 -- Formatted printing
 --
 local function printf(fmt, ...)
-  print(string.format(fmt, ...)
+   print(string.format(fmt, ...))
 end
 
 --
